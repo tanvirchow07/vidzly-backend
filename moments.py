@@ -8,8 +8,8 @@ aid, not a guarantee of how a clip will actually perform.
 """
 import json
 from openai import OpenAI
-from . import config
-from .models import Moment, MomentScore
+import config
+from models import Moment, MomentScore
 
 SYSTEM_PROMPT = """You are Vidzly's clip-selection engine. You read a timestamped
 podcast/video transcript and select the strongest self-contained moments for

@@ -9,8 +9,8 @@ import uuid
 import shutil
 from pathlib import Path
 
-from . import config, transcribe, moments as moments_mod, video, jobstore
-from .models import JobStatus, Clip
+import config, transcribe, moments as moments_mod, video, jobstore
+from models import JobStatus, Clip
 
 
 STEPS = [

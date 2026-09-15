@@ -18,8 +18,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from . import config, pipeline, jobstore
-from .models import JobStatus
+import config, pipeline, jobstore
+from models import JobStatus
 
 app = FastAPI(title="Vidzly API", version="0.1.0")
 

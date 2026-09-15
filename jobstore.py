@@ -6,8 +6,8 @@ below are the only two places that would need to change.
 """
 import json
 from pathlib import Path
-from . import config
-from .models import JobStatus
+import config
+from models import JobStatus
 
 
 def _path(job_id: str) -> Path:

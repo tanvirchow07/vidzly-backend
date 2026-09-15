@@ -4,7 +4,7 @@ Returns word/segment-level timestamps, which the moment-detection
 and caption-burning steps both depend on.
 """
 from openai import OpenAI
-from . import config
+import config
 
 
 def transcribe(audio_path: str) -> dict:
