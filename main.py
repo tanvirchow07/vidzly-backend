@@ -6,20 +6,34 @@ Run locally:
 
 Endpoints:
     POST /api/projects            upload a video, starts processing, returns job_id
+    POST /api/projects/youtube    process a YouTube URL you're authorized to use
     GET  /api/projects/{job_id}   poll status + progress + finished clips
     GET  /api/download/{clip_id}  download a finished vertical clip (mp4)
     GET  /api/health              simple uptime check
 """
 import uuid
 import shutil
+import re
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, field_validator
 
 import config, pipeline, jobstore
 from models import JobStatus
+
+
+class YouTubeRequest(BaseModel):
+    url: str
+
+    @field_validator("url")
+    @classmethod
+    def must_look_like_youtube(cls, v: str) -> str:
+        if not re.match(r"^https?://(www\.)?(youtube\.com|youtu\.be)/", v.strip()):
+            raise ValueError("That doesn't look like a YouTube URL.")
+        return v.strip()
 
 app = FastAPI(title="Vidzly API", version="0.1.0")
 
@@ -59,6 +73,14 @@ async def create_project(background_tasks: BackgroundTasks, file: UploadFile = F
     jobstore.save(JobStatus(job_id=job_id, step="uploading", progress=1, message="Upload received."))
     background_tasks.add_task(pipeline.run_pipeline, job_id, str(dest))
 
+    return {"job_id": job_id}
+
+
+@app.post("/api/projects/youtube")
+async def create_project_from_youtube(background_tasks: BackgroundTasks, body: YouTubeRequest):
+    job_id = uuid.uuid4().hex[:12]
+    jobstore.save(JobStatus(job_id=job_id, step="uploading", progress=1, message="Starting YouTube download..."))
+    background_tasks.add_task(pipeline.run_pipeline_from_youtube, job_id, body.url)
     return {"job_id": job_id}
 
 

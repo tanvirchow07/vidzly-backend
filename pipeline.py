@@ -27,6 +27,28 @@ def _update(job_id: str, step: str, progress: int, message: str):
     jobstore.save(status)
 
 
+def run_pipeline_from_youtube(job_id: str, youtube_url: str):
+    """
+    Entry point for the "paste a YouTube URL" flow: download the video
+    first (reporting progress on the same job_id), then hand off to the
+    normal run_pipeline exactly as if it had been a file upload.
+    """
+    import youtube as youtube_mod  # local import avoids a hard dependency
+                                     # on yt-dlp for installs that only use file upload
+    try:
+        _update(job_id, "uploading", 5, "Downloading video from YouTube...")
+        source_path = youtube_mod.download_youtube(youtube_url)
+    except youtube_mod.DownloadError as e:
+        status = jobstore.load(job_id) or JobStatus(job_id=job_id, step="error", progress=0, message="Failed")
+        status.step = "error"
+        status.error = str(e)
+        status.message = "Download failed."
+        jobstore.save(status)
+        return
+
+    run_pipeline(job_id, source_path)
+
+
 def run_pipeline(job_id: str, source_video_path: str):
     """
     Runs synchronously in a background task/thread. For heavier traffic,
