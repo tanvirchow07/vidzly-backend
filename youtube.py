@@ -31,6 +31,15 @@ def download_youtube(url: str) -> str:
         "quiet": True,
         "no_warnings": True,
         "max_filesize": config.MAX_UPLOAD_MB * 1024 * 1024,
+        # Cloud-server IPs frequently trigger YouTube's "sign in to confirm
+        # you're not a bot" check on the default web client. Requesting the
+        # android/ios player clients instead usually avoids it since they
+        # use a different, less-flagged verification path. Not a 100%
+        # guarantee — YouTube changes this over time — but it's the
+        # standard, current mitigation.
+        "extractor_args": {
+            "youtube": {"player_client": ["android", "ios", "web"]}
+        },
     }
 
     try:
